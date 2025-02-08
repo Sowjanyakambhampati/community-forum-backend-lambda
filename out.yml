@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Calculator Lambda Function
+Resources:
+  api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: api
+      TracingEnabled: true
+      OpenApiVersion: 3.0.2
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization'"
+        AllowOrigin: "'*'"
+  function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs18.x
+      CodeUri: s3://lambda-artifacts-538b1480026cce6f/676302fbc0c205d5ffd89bfa316a996b
+      Description: Calculator Lambda function
+      Timeout: 10
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AWSXrayWriteOnlyAccess
+      Tracing: Active
+      Events:
+        calculateEndpoint:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: api
+            Path: /calculate
+            Method: POST
+Outputs:
+  ApiURL:
+    Description: API Gateway endpoint URL
+    Value:
+      Fn::Sub: https://${api}.execute-api.${AWS::Region}.amazonaws.com/api/calculate
